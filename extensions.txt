@@ -1,0 +1,28 @@
+# VSCodium/VS Code Extensions
+# Install with: while read ext; do codium --install-extension "$ext"; done < extensions.txt
+
+# AI Coding Assistants
+anthropic.claude-code
+openai.chatgpt
+saoudrizwan.claude-dev
+kilocode.kilo-code
+continue.continue
+sst-dev.opencode
+
+# Remote Development
+coder.coder-remote
+jeanp413.open-remote-ssh
+3timeslazy.vscodium-devpodcontainers
+
+# Docker/Containers
+ms-azuretools.vscode-docker
+ms-azuretools.vscode-containers
+
+# Diagrams
+leonardosouza.flowchart-machine
+lyuwenhan.mermaid-snap
+mermaidchart.vscode-mermaid-chart
+
+# Languages/Tools
+redhat.vscode-yaml
+expo.vscode-expo-tools
