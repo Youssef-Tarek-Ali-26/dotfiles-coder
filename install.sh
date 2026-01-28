@@ -74,13 +74,13 @@ install_cli_tools_linux() {
     # Supabase CLI (via npm - the shell script URL is broken)
     if ! command -v supabase &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Supabase CLI..."
-        npm install -g supabase
+        sudo npm install -g supabase || echo "Supabase install failed (non-critical)"
     fi
     
     # Neon CLI
     if ! command -v neonctl &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Neon CLI..."
-        npm install -g neonctl
+        sudo npm install -g neonctl || echo "Neon CLI install failed (non-critical)"
     fi
     
     echo "CLI tools installed!"
