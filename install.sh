@@ -71,10 +71,12 @@ install_cli_tools_linux() {
         sudo apt-get update && sudo apt-get install -y gh
     fi
     
-    # Supabase CLI (via npm - the shell script URL is broken)
-    if ! command -v supabase &>/dev/null && command -v npm &>/dev/null; then
+    # Supabase CLI (npm global not supported, must use apt)
+    if ! command -v supabase &>/dev/null; then
         echo "Installing Supabase CLI..."
-        sudo npm install -g supabase || echo "Supabase install failed (non-critical)"
+        curl -fsSL https://deb.supabase.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/supabase-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/supabase-archive-keyring.gpg] https://deb.supabase.io stable main" | sudo tee /etc/apt/sources.list.d/supabase.list > /dev/null
+        sudo apt-get update && sudo apt-get install -y supabase || echo "Supabase install failed (non-critical)"
     fi
     
     # Neon CLI
