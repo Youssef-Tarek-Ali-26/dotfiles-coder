@@ -71,12 +71,10 @@ install_cli_tools_linux() {
         sudo apt-get update && sudo apt-get install -y gh
     fi
     
-    # Supabase CLI (npm global not supported, must use apt)
+    # Supabase CLI (use npx, no global install needed)
     if ! command -v supabase &>/dev/null; then
         echo "Installing Supabase CLI..."
-        curl -fsSL https://deb.supabase.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/supabase-archive-keyring.gpg
-        echo "deb [signed-by=/usr/share/keyrings/supabase-archive-keyring.gpg] https://deb.supabase.io stable main" | sudo tee /etc/apt/sources.list.d/supabase.list > /dev/null
-        sudo apt-get update && sudo apt-get install -y supabase || echo "Supabase install failed (non-critical)"
+        sudo npm install -g supabase || echo "Supabase install failed (use npx supabase instead)"
     fi
     
     # Neon CLI
@@ -118,6 +116,18 @@ install_cli_tools_linux() {
         curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash - \
             && sudo apt-get update && sudo apt-get install -y infisical \
             || echo "Infisical install failed (non-critical)"
+    fi
+    
+    # Cloudflare Wrangler CLI
+    if ! command -v wrangler &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Cloudflare Wrangler CLI..."
+        sudo npm install -g wrangler || echo "Wrangler install failed (non-critical)"
+    fi
+    
+    # Apify CLI (web scraping)
+    if ! command -v apify &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Apify CLI..."
+        sudo npm install -g apify-cli || echo "Apify install failed (non-critical)"
     fi
     
     echo "CLI tools installed!"
