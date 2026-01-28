@@ -1,0 +1,36 @@
+[user]
+	name = Youssef Tarek Ali
+	email = yousseftarek26@aucegypt.edu
+
+[core]
+	editor = vim
+	autocrlf = input
+	pager = less -FRX
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	lg = log --oneline --graph --decorate -20
+	amend = commit --amend --no-edit
+
+[color]
+	ui = auto
+
+[diff]
+	colorMoved = default
+
+[merge]
+	conflictstyle = diff3

@@ -24,21 +24,33 @@ setup_shell() {
         PROFILE_FILE="$HOME/.zshrc"
     fi
     
-    # Add ~/.local/bin to PATH if not already
-    if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$PROFILE_FILE" 2>/dev/null; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$PROFILE_FILE"
+    DOTFILES_MARKER="# dotfiles-coder"
+    if ! grep -q "$DOTFILES_MARKER" "$PROFILE_FILE" 2>/dev/null; then
+        cat >> "$PROFILE_FILE" << EOF
+
+$DOTFILES_MARKER
+[ -f ~/.dotfiles/shell/exports.sh ] && source ~/.dotfiles/shell/exports.sh
+[ -f ~/.dotfiles/shell/aliases.sh ] && source ~/.dotfiles/shell/aliases.sh
+EOF
+        echo "Added dotfiles sourcing to $PROFILE_FILE"
     fi
     
-    # Add bun to PATH
-    if ! grep -q 'export BUN_INSTALL' "$PROFILE_FILE" 2>/dev/null; then
-        echo 'export BUN_INSTALL="$HOME/.bun"' >> "$PROFILE_FILE"
-        echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$PROFILE_FILE"
-    fi
-    
-    # Source the profile to make PATH available in this script
     export PATH="$HOME/.local/bin:$PATH"
     export BUN_INSTALL="$HOME/.bun"
     export PATH="$BUN_INSTALL/bin:$PATH"
+}
+
+setup_git() {
+    echo "==> Setting up git configuration..."
+    
+    if [ -f "$DOTFILES_DIR/git/.gitconfig" ]; then
+        if [ -f "$HOME/.gitconfig" ] && ! [ -L "$HOME/.gitconfig" ]; then
+            mv "$HOME/.gitconfig" "$HOME/.gitconfig.backup"
+            echo "Backed up existing .gitconfig"
+        fi
+        ln -sf "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
+        echo "Linked .gitconfig"
+    fi
 }
 
 # ============================================
@@ -71,11 +83,9 @@ install_cli_tools_linux() {
         sudo apt-get update && sudo apt-get install -y gh
     fi
     
-    # Supabase CLI (use npx, no global install needed)
-    if ! command -v supabase &>/dev/null; then
-        echo "Installing Supabase CLI..."
-        sudo npm install -g supabase || echo "Supabase install failed (use npx supabase instead)"
-    fi
+    # Supabase CLI - npm global install is blocked by Supabase
+    # Use `npx supabase` instead - no installation needed
+    echo "Note: Use 'npx supabase' for Supabase CLI (global install blocked)"
     
     # Neon CLI
     if ! command -v neonctl &>/dev/null && command -v npm &>/dev/null; then
@@ -104,7 +114,7 @@ install_cli_tools_linux() {
     # RunPod CLI
     if ! command -v runpodctl &>/dev/null; then
         echo "Installing RunPod CLI..."
-        curl -sSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o /tmp/runpodctl \
+        curl -sSL -o /tmp/runpodctl https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 \
             && chmod +x /tmp/runpodctl \
             && sudo mv /tmp/runpodctl /usr/local/bin/runpodctl \
             || echo "RunPod CLI install failed (non-critical)"
@@ -255,8 +265,8 @@ main() {
     echo "Dotfiles Installation"
     echo "========================================"
     
-    # Setup shell FIRST to get PATH configured
     setup_shell
+    setup_git
     
     if $IS_LINUX; then
         install_cli_tools_linux
