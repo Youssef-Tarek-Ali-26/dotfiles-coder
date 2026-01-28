@@ -85,6 +85,41 @@ install_cli_tools_linux() {
         sudo npm install -g neonctl || echo "Neon CLI install failed (non-critical)"
     fi
     
+    # Convex CLI
+    if ! command -v convex &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Convex CLI..."
+        sudo npm install -g convex || echo "Convex install failed (non-critical)"
+    fi
+    
+    # Dokploy CLI
+    if ! command -v dokploy &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Dokploy CLI..."
+        sudo npm install -g @dokploy/cli || echo "Dokploy install failed (non-critical)"
+    fi
+    
+    # Hetzner CLI (hcloud)
+    if ! command -v hcloud &>/dev/null; then
+        echo "Installing Hetzner CLI..."
+        sudo apt-get install -y hcloud-cli || echo "hcloud install failed (non-critical)"
+    fi
+    
+    # RunPod CLI
+    if ! command -v runpodctl &>/dev/null; then
+        echo "Installing RunPod CLI..."
+        curl -sSL https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 -o /tmp/runpodctl \
+            && chmod +x /tmp/runpodctl \
+            && sudo mv /tmp/runpodctl /usr/local/bin/runpodctl \
+            || echo "RunPod CLI install failed (non-critical)"
+    fi
+    
+    # Infisical CLI (secrets management)
+    if ! command -v infisical &>/dev/null; then
+        echo "Installing Infisical CLI..."
+        curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash - \
+            && sudo apt-get update && sudo apt-get install -y infisical \
+            || echo "Infisical install failed (non-critical)"
+    fi
+    
     echo "CLI tools installed!"
 }
 
