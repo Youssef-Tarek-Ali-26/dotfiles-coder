@@ -57,6 +57,11 @@ setup_git() {
 # CLI Tools Installation (Linux only - Mac uses Homebrew)
 # ============================================
 install_cli_tools_linux() {
+    if command -v node &>/dev/null && command -v gh &>/dev/null && command -v bun &>/dev/null; then
+        echo "==> CLI tools already installed (using custom image)"
+        return
+    fi
+    
     echo "==> Installing CLI tools..."
     
     # Node.js via NodeSource
