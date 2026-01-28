@@ -111,12 +111,13 @@ install_cli_tools_linux() {
         sudo apt-get install -y hcloud-cli || echo "hcloud install failed (non-critical)"
     fi
     
-    # RunPod CLI
+    # RunPod CLI (distributed as tarball)
     if ! command -v runpodctl &>/dev/null; then
         echo "Installing RunPod CLI..."
-        curl -sSL -o /tmp/runpodctl https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 \
-            && chmod +x /tmp/runpodctl \
+        curl -sSL -o /tmp/runpodctl.tar.gz https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64.tar.gz \
+            && tar -xzf /tmp/runpodctl.tar.gz -C /tmp \
             && sudo mv /tmp/runpodctl /usr/local/bin/runpodctl \
+            && rm /tmp/runpodctl.tar.gz \
             || echo "RunPod CLI install failed (non-critical)"
     fi
     
