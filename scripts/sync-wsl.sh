@@ -4,6 +4,7 @@ set -euo pipefail
 target="${1:-youssef@100.86.28.11}"
 remote_dir="${2:-/home/youssef/.dotfiles}"
 ssh_cmd="${SSH_CMD:-ssh}"
+remote_skip_installs="${DOTFILES_REMOTE_SKIP_INSTALLS:-1}"
 
 rsync -az --delete \
   -e "$ssh_cmd" \
@@ -16,4 +17,4 @@ rsync -az --delete \
   --exclude '.env.*' \
   ./ "$target:$remote_dir/"
 
-$ssh_cmd "$target" "chmod +x '$remote_dir/install.sh' '$remote_dir/scripts/'*.sh && DOTFILES_SKIP_INSTALLS=1 '$remote_dir/install.sh'"
+$ssh_cmd "$target" "chmod +x '$remote_dir/install.sh' '$remote_dir/scripts/'*.sh && DOTFILES_SKIP_INSTALLS='$remote_skip_installs' '$remote_dir/install.sh'"

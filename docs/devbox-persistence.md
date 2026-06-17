@@ -23,6 +23,7 @@ It should make a fresh devbox feel familiar, but it must not become a credential
 - Vercel CLI
 - Hetzner hcloud CLI
 - Coder CLI
+- provider/deploy CLIs such as AWS, Neon, Convex, Dokploy, Wrangler, Apify, RunPod, Railway, Fly.io, kubectl, OpenTofu, and cloudflared
 - Docker, when the host supports system packages/systemd
 
 ## Reauthenticate Per Devbox
@@ -38,6 +39,8 @@ infisical user get
 
 vercel login
 coder login <deployment-url>
+railway login --browserless
+aws configure sso
 
 codex login
 claude

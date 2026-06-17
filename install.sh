@@ -94,12 +94,8 @@ setup_git() {
 # CLI Tools Installation (Linux only - Mac uses Homebrew)
 # ============================================
 install_cli_tools_linux() {
-    if command -v node &>/dev/null && command -v gh &>/dev/null && command -v bun &>/dev/null; then
-        echo "==> CLI tools already installed (using custom image)"
-        return
-    fi
-    
-    echo "==> Installing CLI tools..."
+    echo "==> Installing/checking CLI tools..."
+    mkdir -p "$HOME/.local/bin"
     
     # Node.js via NodeSource
     if ! command -v node &>/dev/null; then
@@ -119,7 +115,8 @@ install_cli_tools_linux() {
 
     # Corepack/pnpm
     if command -v npm &>/dev/null; then
-        mkdir -p "$HOME/.local/bin"
+        npm config set prefix "$HOME/.local" >/dev/null 2>&1 || true
+        export npm_config_prefix="$HOME/.local"
         corepack enable --install-directory "$HOME/.local/bin" || true
         corepack prepare pnpm@latest --activate || true
     fi
@@ -145,25 +142,31 @@ install_cli_tools_linux() {
     fi
     
     # Supabase CLI - npm global install is blocked by Supabase
-    # Use `npx supabase` instead - no installation needed
-    echo "Note: Use 'npx supabase' for Supabase CLI (global install blocked)"
+    # Supabase's current docs recommend project-local install and `npx supabase`.
+    echo "Note: Use 'npx supabase' or a project-local supabase dev dependency"
+
+    # Vercel CLI
+    if ! command -v vercel &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Vercel CLI..."
+        npm install -g vercel || echo "Vercel CLI install failed (non-critical)"
+    fi
     
     # Neon CLI
     if ! command -v neonctl &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Neon CLI..."
-        sudo npm install -g neonctl || echo "Neon CLI install failed (non-critical)"
+        npm install -g neonctl || echo "Neon CLI install failed (non-critical)"
     fi
     
     # Convex CLI
     if ! command -v convex &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Convex CLI..."
-        sudo npm install -g convex || echo "Convex install failed (non-critical)"
+        npm install -g convex || echo "Convex install failed (non-critical)"
     fi
     
     # Dokploy CLI
     if ! command -v dokploy &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Dokploy CLI..."
-        sudo npm install -g @dokploy/cli || echo "Dokploy install failed (non-critical)"
+        npm install -g @dokploy/cli || echo "Dokploy install failed (non-critical)"
     fi
     
     # Hetzner CLI (hcloud)
@@ -177,7 +180,8 @@ install_cli_tools_linux() {
         echo "Installing RunPod CLI..."
         curl -sSL -o /tmp/runpodctl.tar.gz https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64.tar.gz \
             && tar -xzf /tmp/runpodctl.tar.gz -C /tmp \
-            && sudo mv /tmp/runpodctl /usr/local/bin/runpodctl \
+            && mv /tmp/runpodctl "$HOME/.local/bin/runpodctl" \
+            && chmod +x "$HOME/.local/bin/runpodctl" \
             && rm /tmp/runpodctl.tar.gz \
             || echo "RunPod CLI install failed (non-critical)"
     fi
@@ -199,13 +203,89 @@ install_cli_tools_linux() {
     # Cloudflare Wrangler CLI
     if ! command -v wrangler &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Cloudflare Wrangler CLI..."
-        sudo npm install -g wrangler || echo "Wrangler install failed (non-critical)"
+        npm install -g wrangler || echo "Wrangler install failed (non-critical)"
     fi
     
     # Apify CLI (web scraping)
     if ! command -v apify &>/dev/null && command -v npm &>/dev/null; then
         echo "Installing Apify CLI..."
-        sudo npm install -g apify-cli || echo "Apify install failed (non-critical)"
+        npm install -g apify-cli || echo "Apify install failed (non-critical)"
+    fi
+
+    # Railway CLI
+    if ! command -v railway &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing Railway CLI..."
+        npm install -g @railway/cli || echo "Railway CLI install failed (non-critical)"
+    fi
+
+    # SST CLI
+    if ! command -v sst &>/dev/null && command -v npm &>/dev/null; then
+        echo "Installing SST CLI..."
+        npm install -g sst || echo "SST CLI install failed (non-critical)"
+    fi
+
+    # AWS CLI v2
+    if ! command -v aws &>/dev/null; then
+        echo "Installing AWS CLI v2..."
+        tmp_dir="$(mktemp -d)"
+        aws_arch="x86_64"
+        if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+            aws_arch="aarch64"
+        fi
+        if command -v unzip &>/dev/null; then
+            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" -o "$tmp_dir/awscliv2.zip" \
+                && unzip -q "$tmp_dir/awscliv2.zip" -d "$tmp_dir" \
+                && "$tmp_dir/aws/install" -i "$HOME/.local/aws-cli" -b "$HOME/.local/bin" --update \
+                || echo "AWS CLI install failed (non-critical)"
+        else
+            echo "AWS CLI install skipped: unzip is missing"
+        fi
+        rm -rf "$tmp_dir"
+    fi
+
+    # Fly.io CLI
+    if ! command -v fly &>/dev/null && ! command -v flyctl &>/dev/null; then
+        echo "Installing Fly.io CLI..."
+        curl -L https://fly.io/install.sh | sh || echo "Fly CLI install failed (non-critical)"
+        if [ -x "$HOME/.fly/bin/flyctl" ]; then
+            ln -sf "$HOME/.fly/bin/flyctl" "$HOME/.local/bin/flyctl"
+            ln -sf "$HOME/.fly/bin/flyctl" "$HOME/.local/bin/fly"
+        fi
+    fi
+
+    # kubectl
+    if ! command -v kubectl &>/dev/null; then
+        echo "Installing kubectl..."
+        kubectl_arch="amd64"
+        if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+            kubectl_arch="arm64"
+        fi
+        curl -fsSL -o /tmp/kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/${kubectl_arch}/kubectl" \
+            && install -m 0755 /tmp/kubectl "$HOME/.local/bin/kubectl" \
+            && rm -f /tmp/kubectl \
+            || echo "kubectl install failed (non-critical)"
+    fi
+
+    # OpenTofu
+    if ! command -v tofu &>/dev/null; then
+        echo "Installing OpenTofu..."
+        curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o /tmp/install-opentofu.sh \
+            && chmod +x /tmp/install-opentofu.sh \
+            && /tmp/install-opentofu.sh --install-method standalone --install-path "$HOME/.local/bin" \
+            && rm -f /tmp/install-opentofu.sh \
+            || echo "OpenTofu install failed (non-critical)"
+    fi
+
+    # Cloudflare cloudflared
+    if ! command -v cloudflared &>/dev/null; then
+        echo "Installing cloudflared..."
+        cf_arch="amd64"
+        if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+            cf_arch="arm64"
+        fi
+        curl -fsSL -o "$HOME/.local/bin/cloudflared" "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${cf_arch}" \
+            && chmod +x "$HOME/.local/bin/cloudflared" \
+            || echo "cloudflared install failed (non-critical)"
     fi
     
     echo "CLI tools installed!"
@@ -222,8 +302,11 @@ install_code_server() {
         return
     fi
     
-    # Install code-server via official script
-    curl -fsSL https://code-server.dev/install.sh | sh
+    # Install code-server as a user-local standalone binary, no root required.
+    curl -fsSL https://code-server.dev/install.sh | sh -s -- --method=standalone --prefix="$HOME/.local" || {
+        echo "code-server install failed (non-critical)"
+        return
+    }
     
     # Disable password auth (Coder handles auth)
     mkdir -p ~/.config/code-server

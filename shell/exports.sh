@@ -8,6 +8,8 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.bun/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.fly/bin:$PATH"
+export PATH="$HOME/.railway/bin:$PATH"
 export BUN_INSTALL="$HOME/.bun"
 
 export HISTSIZE=10000

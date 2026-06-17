@@ -20,7 +20,7 @@ ssh -i ~/.ssh/id_ed25519_win youssef@100.86.28.11 '~/.dotfiles/scripts/devbox-ch
 
 ## What's Included
 
-- **CLI Tools** (Linux): node, bun, pnpm, uv, Rust, gh, infisical, vercel, hcloud, coder, supabase via npx
+- **CLI Tools** (Linux): node, bun, pnpm, uv, Rust, gh, infisical, vercel, hcloud, coder, AWS, Neon, Convex, Dokploy, Wrangler, Apify, RunPod, Railway, Fly.io, kubectl, OpenTofu, cloudflared, Supabase via npx
 - **VS Code Extensions**: AI assistants, remote dev, Docker, diagrams
 - **OpenCode Plugins**: agent-memory, handoff
 - **OpenCode Config**: oh-my-opencode.json (agent model settings)

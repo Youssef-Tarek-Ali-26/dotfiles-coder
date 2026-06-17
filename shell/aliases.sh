@@ -49,8 +49,14 @@ alias ni="npm install"
 alias br="bun run"
 alias bi="bun install"
 
-# ===== Supabase via npx =====
-alias supabase="npx supabase"
+# ===== Tool wrappers =====
+if ! command -v supabase &>/dev/null; then
+    alias supabase="npx supabase"
+fi
+
+if ! command -v tailscale &>/dev/null && command -v tailscale-win &>/dev/null; then
+    alias tailscale="tailscale-win"
+fi
 
 # ===== Remote/devbox checks =====
 alias devbox-check='${DOTFILES_CODER_DIR:-$HOME/.dotfiles}/scripts/devbox-check.sh'

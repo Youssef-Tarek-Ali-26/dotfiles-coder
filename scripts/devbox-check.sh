@@ -42,6 +42,19 @@ commands=(
   infisical
   vercel
   hcloud
+  aws
+  neonctl
+  convex
+  dokploy
+  wrangler
+  apify
+  runpodctl
+  fly
+  railway
+  kubectl
+  tofu
+  cloudflared
+  tailscale-win
   rg
   fd
   fzf
@@ -60,12 +73,16 @@ for cmd in "${commands[@]}"; do
 done
 
 printf '\n[versions]\n'
-for cmd in node npm pnpm bun python3 uv rustup cargo docker coder codex claude infisical vercel hcloud; do
+for cmd in node npm pnpm bun python3 uv rustup cargo docker coder codex claude infisical vercel hcloud aws neonctl convex dokploy wrangler apify runpodctl fly railway kubectl tofu cloudflared tailscale-win; do
   if command -v "$cmd" >/dev/null 2>&1; then
     printf '%-10s ' "$cmd"
     case "$cmd" in
       hcloud) hcloud version 2>/dev/null | head -n1 || true ;;
       docker) docker --version 2>/dev/null | head -n1 || true ;;
+      fly) fly version 2>/dev/null | head -n1 || true ;;
+      kubectl) kubectl version --client=true 2>/dev/null | head -n1 || true ;;
+      tofu) tofu --version 2>/dev/null | head -n1 || true ;;
+      tailscale-win) tailscale-win version 2>/dev/null | head -n1 || true ;;
       *) "$cmd" --version 2>/dev/null | head -n1 || true ;;
     esac
   fi
@@ -104,10 +121,34 @@ if command -v hcloud >/dev/null 2>&1; then
   fi
 fi
 
+if command -v railway >/dev/null 2>&1; then
+  if run_quiet_timeout 8 railway whoami; then
+    echo 'ok      railway'
+  else
+    echo 'login   railway login --browserless'
+  fi
+fi
+
+if command -v aws >/dev/null 2>&1; then
+  if run_quiet_timeout 8 aws sts get-caller-identity; then
+    echo 'ok      aws'
+  else
+    echo 'login   aws configure sso | aws configure'
+  fi
+fi
+
 if command -v docker >/dev/null 2>&1; then
   if run_quiet_timeout 8 docker info; then
     echo 'ok      docker'
   else
     echo 'fix     docker daemon/group access'
+  fi
+fi
+
+if command -v tailscale-win >/dev/null 2>&1; then
+  if run_quiet_timeout 8 tailscale-win status; then
+    echo 'ok      tailscale-win'
+  else
+    echo 'fix     Windows Tailscale service'
   fi
 fi
