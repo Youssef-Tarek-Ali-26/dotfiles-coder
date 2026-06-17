@@ -1,0 +1,45 @@
+# Machine-local auth and secret state.
+.ssh/
+.gnupg/
+.aws/
+.azure/
+.infisical/
+infisical-keyring/
+.docker/config.json
+.npmrc
+.netrc
+.pypirc
+.gem/credentials
+.hcloud/
+.config/gcloud/
+.config/gh/hosts.yml
+.config/neonctl/credentials.json
+.config/gws/
+.config/hcloud/
+.config/infisical/
+.local/share/opencode/auth.json
+.local/share/opencode/account.json
+.local/state/
+
+# AI/agent account state. Keep public config in this repo, not auth/session DBs.
+.codex/
+.claude/
+.claude.json
+.claude.json.*
+.opencode/auth.json
+
+# Shell/editor state.
+.*history
+.zcompdump*
+.zsh_sessions/
+.cache/
+node_modules/
+
+# Local secret files.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision

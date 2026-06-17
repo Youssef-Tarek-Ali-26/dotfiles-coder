@@ -52,6 +52,9 @@ alias bi="bun install"
 # ===== Supabase via npx =====
 alias supabase="npx supabase"
 
+# ===== Remote/devbox checks =====
+alias devbox-check='${DOTFILES_CODER_DIR:-$HOME/.dotfiles}/scripts/devbox-check.sh'
+
 # ===== Quick edits =====
 alias zshrc='${EDITOR:-vim} ~/.zshrc'
 alias bashrc='${EDITOR:-vim} ~/.bashrc'

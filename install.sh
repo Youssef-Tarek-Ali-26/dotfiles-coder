@@ -18,23 +18,60 @@ fi
 # ============================================
 setup_shell() {
     echo "==> Setting up shell configuration..."
-    
-    PROFILE_FILE="$HOME/.bashrc"
+
     if [ -f "$HOME/.zshrc" ]; then
         PROFILE_FILE="$HOME/.zshrc"
+    else
+        PROFILE_FILE="$HOME/.bashrc"
     fi
-    
+
+    touch "$PROFILE_FILE"
+
     DOTFILES_MARKER="# dotfiles-coder"
     if ! grep -q "$DOTFILES_MARKER" "$PROFILE_FILE" 2>/dev/null; then
-        cat >> "$PROFILE_FILE" << EOF
+        block_file="$(mktemp)"
+        cat > "$block_file" << EOF
 
 $DOTFILES_MARKER
-[ -f ~/.dotfiles/shell/exports.sh ] && source ~/.dotfiles/shell/exports.sh
-[ -f ~/.dotfiles/shell/aliases.sh ] && source ~/.dotfiles/shell/aliases.sh
+export DOTFILES_CODER_DIR="$DOTFILES_DIR"
+[ -f "\$DOTFILES_CODER_DIR/shell/exports.sh" ] && . "\$DOTFILES_CODER_DIR/shell/exports.sh"
+case "\$-" in
+  *i*) [ -f "\$DOTFILES_CODER_DIR/shell/aliases.sh" ] && . "\$DOTFILES_CODER_DIR/shell/aliases.sh" ;;
+esac
 EOF
+
+        # Bash returns early for non-interactive shells in many default .bashrc
+        # files. Insert before that guard so SSH remote commands get PATH too.
+        if [ "$(basename "$PROFILE_FILE")" = ".bashrc" ] && grep -q 'case \$- in' "$PROFILE_FILE"; then
+            tmp_profile="$(mktemp)"
+            awk -v block_file="$block_file" '
+                BEGIN {
+                    while ((getline line < block_file) > 0) {
+                        block = block line "\n"
+                    }
+                    close(block_file)
+                }
+                !inserted && $0 ~ /case \$- in/ {
+                    printf "%s", block
+                    inserted = 1
+                }
+                { print }
+                END {
+                    if (!inserted) {
+                        printf "%s", block
+                    }
+                }
+            ' "$PROFILE_FILE" > "$tmp_profile"
+            cp "$PROFILE_FILE" "$PROFILE_FILE.backup.$(date +%Y%m%d%H%M%S)"
+            mv "$tmp_profile" "$PROFILE_FILE"
+        else
+            cat "$block_file" >> "$PROFILE_FILE"
+        fi
+
+        rm -f "$block_file"
         echo "Added dotfiles sourcing to $PROFILE_FILE"
     fi
-    
+
     export PATH="$HOME/.local/bin:$PATH"
     export BUN_INSTALL="$HOME/.bun"
     export PATH="$BUN_INSTALL/bin:$PATH"
@@ -78,6 +115,25 @@ install_cli_tools_linux() {
         # Source bun immediately
         export BUN_INSTALL="$HOME/.bun"
         export PATH="$BUN_INSTALL/bin:$PATH"
+    fi
+
+    # Corepack/pnpm
+    if command -v npm &>/dev/null; then
+        mkdir -p "$HOME/.local/bin"
+        corepack enable --install-directory "$HOME/.local/bin" || true
+        corepack prepare pnpm@latest --activate || true
+    fi
+
+    # uv
+    if ! command -v uv &>/dev/null; then
+        echo "Installing uv..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh || echo "uv install failed (non-critical)"
+    fi
+
+    # Rust
+    if ! command -v rustup &>/dev/null; then
+        echo "Installing rustup..."
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path || echo "rustup install failed (non-critical)"
     fi
     
     # GitHub CLI
@@ -132,6 +188,12 @@ install_cli_tools_linux() {
         curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash - \
             && sudo apt-get update && sudo apt-get install -y infisical \
             || echo "Infisical install failed (non-critical)"
+    fi
+
+    # Coder CLI
+    if ! command -v coder &>/dev/null; then
+        echo "Installing Coder CLI..."
+        curl -fsSL https://coder.com/install.sh | sh -s -- --prefix "$HOME/.local" || echo "Coder CLI install failed (non-critical)"
     fi
     
     # Cloudflare Wrangler CLI
@@ -274,14 +336,20 @@ main() {
     setup_shell
     setup_git
     
-    if $IS_LINUX; then
+    if $IS_LINUX && [ "${DOTFILES_SKIP_INSTALLS:-0}" != "1" ]; then
         install_cli_tools_linux
         install_code_server
+    elif $IS_LINUX; then
+        echo "==> Skipping Linux package installs (DOTFILES_SKIP_INSTALLS=1)"
     fi
     
     setup_opencode_plugins
     setup_opencode_config
     install_extensions
+
+    if [ -x "$DOTFILES_DIR/scripts/devbox-check.sh" ]; then
+        "$DOTFILES_DIR/scripts/devbox-check.sh" || true
+    fi
     
     echo ""
     echo "========================================"
